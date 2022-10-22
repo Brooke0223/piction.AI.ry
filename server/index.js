@@ -81,7 +81,9 @@ io.on('connection', socket => {
         io.to(user.room).emit('updateImageResponse', image)
     })
 
-    //When a Drawing-User selects to "pass" their turn (and maybe also use this later for when the "Guessing-User" guesses the word correctly, still have to make that functionality)
+
+
+    //When a Drawing-User selects to "pass" their turn --OR-- When a Guessing-User guesses the word correctly
     socket.on('nextRoundRequest', round => {
         const user = getUser(socket.id)
 
@@ -95,19 +97,30 @@ io.on('connection', socket => {
         io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') //let ONLY the Drawing-Player in the room know that they are now a "Guessing-Player"
         io.to(nextDrawingPlayer.id).emit('setRole', 'Drawing-Player') //let ONLY the next Drawing-Player in the room know that they are now the "Drawing-Player"
 
+        drawingPlayer.role = 'Guessing-Player'
         nextDrawingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
-        user.role = 'Guessing-Player' //change the "role" of the socket in that socket's profile
+
+    })
+
+    //When a drawing-user OR guessing-user submit a message and/or guess that DOESN'T match that round's word, we should just send the message back to all the player's in the room in order to add that message to all the player's messages array
+    socket.on('addMessageRequest', message => {
+        const user = getUser(socket.id)
+
+        io.to(user.room).emit('addMessageResponse', message) //let everyone in the room know to add that message to their array of messages
+
     })
     
     
     
     //When a user disconnects
-    socket.on('disconnect', () => {
+    socket.on('disconnect', message => {
         console.log("A USER HAS LEFT")
         const user = removeUser(socket.id)
         if(user)
             io.to(user.room).emit('roomData', {room: user.room, users: getUsersInRoom(user.room)})
     })
+
+
 })
 // --------------------------------------------------------------------------------------------
 
