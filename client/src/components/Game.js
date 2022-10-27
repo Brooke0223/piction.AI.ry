@@ -178,7 +178,7 @@ const Game = (props) => {
       console.log("It found the match!!!!!")
       socket.emit('nextRoundRequest', round) //if the message matches that round's word, let the server know to update to the next round
     }else{ 
-      socket.emit('addMessageRequest', message) //if the message and that round's word do NOT match, let the server know to send that message back to all the players in the room so that it can be added to averyone's array of messages (I will use the array to map out the messages in a chat box)
+      socket.emit('addMessageRequest', message) //if the message and that round's word do NOT match, let the server know to send that message back to all the players in the room so that it can be added to everyone's array of messages (I will use the array to map out the messages in a chat box)
     }
 
     setMessageInput('') //I should clear out the message so the input box goes back to showing the placeholder
