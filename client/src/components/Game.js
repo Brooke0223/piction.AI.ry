@@ -2,12 +2,13 @@
 import React, { useState, useEffect, useRef } from "react"; //lets us have state variable
 import queryString from 'query-string'; // lets us retrieve data that is present as a query in the URL
 import io from 'socket.io-client';
-import { terms } from "../terms"; //THIS IS THE LIST OF WORDS TO GUESS FROM!!!!!
+// import { terms } from "../../../server/terms"; //THIS IS THE LIST OF WORDS TO GUESS FROM!!!!!
 import './Game.css'
 
 
 
-const ENDPOINT = 'http://localhost:3001'
+// const ENDPOINT = 'http://localhost:3001'
+const ENDPOINT = 'https://piction-ai-ry.onrender.com'
 const socket = io(ENDPOINT); 
 
 
