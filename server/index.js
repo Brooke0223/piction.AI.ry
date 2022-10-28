@@ -130,8 +130,8 @@ io.on('connection', socket => {
 
 const path = require('path')
 //serve static assets in production
-app.use(express.static('../client/build'))
-app.get('*', (req, res) => {res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))})
+app.use(express.static('../build'))
+app.get('*', (req, res) => {res.sendFile(path.resolve(__dirname, 'build', 'index.html'))})
 
 
 
