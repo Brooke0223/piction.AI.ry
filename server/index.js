@@ -1,7 +1,8 @@
 let terms = require('./terms'); //this is importing all the words I will use!
+
 const express = require('express');
 const app = express();
-const http  = require('https');
+const http  = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors')
 
@@ -10,11 +11,9 @@ app.use(cors());
 
 const server = http.createServer(app)
 
-
 const io = new Server(server, {
     cors: {
-        // origin: 'http://localhost:3000',
-        origin: ['https://635af1a32df754065e3b7628--jade-meringue-488563.netlify.app/', 'https://piction-ai-ry.onrender.com/socket.io/?EIO=4&transport=polling&t=OGRdccQ'],
+        origin: 'http://localhost:3000',
         methods: ['GET', 'POST'],
     },
 })
@@ -28,9 +27,8 @@ server.listen(PORT, () => {
 
 
 
-
-const router = require('./router');  //this line just makes it possible for us to use the "router" function (&details) that we defined in the router.js file
-app.use(router);
+// const router = require('./router');  //this line just makes it possible for us to use the "router" function (&details) that we defined in the router.js file
+// app.use(router);
 
 
 
@@ -130,9 +128,10 @@ io.on('connection', socket => {
 
 
 
-
-
-
+const path = require('path')
+//serve static assets in production
+app.use(express.static('../client/build'))
+app.get('*', (req, res) => {res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))})
 
 
 
@@ -323,7 +322,6 @@ io.on('connection', socket => {
 
 
 // })
-
 
 
 

@@ -2,14 +2,22 @@
 import React, { useState, useEffect, useRef } from "react"; //lets us have state variable
 import queryString from 'query-string'; // lets us retrieve data that is present as a query in the URL
 import io from 'socket.io-client';
-// import { terms } from "../../../server/terms"; //THIS IS THE LIST OF WORDS TO GUESS FROM!!!!!
+// import { terms } from "../terms"; //THIS IS THE LIST OF WORDS TO GUESS FROM!!!!!
 import './Game.css'
 
 
 
 // const ENDPOINT = 'http://localhost:3001'
+// const ENDPOINT = 'https://main--jade-meringue-488563.netlify.app/'
 const ENDPOINT = 'https://piction-ai-ry.onrender.com'
-const socket = io(ENDPOINT); 
+const connectionOptions =  {
+  "forceNew" : true,
+  "reconnectionAttempts": "Infinity", 
+  "timeout" : 10000,                  
+  "transports" : ["websocket"]
+}
+
+const socket = io(ENDPOINT, connectionOptions); 
 
 
 
@@ -182,8 +190,8 @@ const Game = (props) => {
       socket.emit('addMessageRequest', message) //if the message and that round's word do NOT match, let the server know to send that message back to all the players in the room so that it can be added to everyone's array of messages (I will use the array to map out the messages in a chat box)
     }
 
-    setMessageInput('') //I should clear out the message so the input box goes back to showing the placeholder
-    setGuessInput('') //I should clear out the message so the input box goes back to showing the placeholder
+    setMessageInput('') //I should clear out the individual message so the input box goes back to showing the placeholder
+    setGuessInput('') //I should clear out the individual message so the input box goes back to showing the placeholder
   }
 
 
@@ -304,7 +312,7 @@ const Game = (props) => {
         {(role === 'Guessing-Player' && round !== 0) && <>
         <form onSubmit={submitMessage}>
           <br></br>
-          <input type="text" value={guessInput} onChange={event => setMessage('*** '+name.toUpperCase()+' GUESSED: "'+event.target.value+'" ***', setGuessInput(event.target.value))} placeholder='Enter your guesses here'/>
+          <input type="text" value={guessInput} onChange={event => setMessage('*** '+name+' GUESSED: "'+event.target.value+'" ***', setGuessInput(event.target.value))} placeholder='Enter your guesses here'/>
           {/* <input type="text" value={message} onChange={event => setMessage(event.target.value)} placeholder='Enter your guesses here'/> */}
           <input type="submit"/>
         </form>
@@ -313,15 +321,15 @@ const Game = (props) => {
 
 
         {/* EVERYONE CAN SEE THE MESSAGE INPUT BOX */}
-        {(round !== 0) && <>
+        {/* {(round !== 0) && <>
         <form onSubmit={submitMessage}>
           <br></br>
-          <input type="text" value={messageInput} onChange={event => setMessage(name +': '+event.target.value, setMessageInput(event.target.value))} placeholder='Enter your message here'/>
+          <input type="text" value={messageInput} onChange={event => setMessage(name +': '+event.target.value, setMessageInput(event.target.value))} placeholder='Enter your message here'/> */}
           {/* <input type="text" value={message} onChange={event => setMessage(event.target.value)} placeholder='Enter your guesses here'/> */}
-          <input type="submit"/>
+          {/* <input type="submit"/>
         </form>
         {messages}
-        </>}
+        </>} */}
       
       
 
