@@ -53,7 +53,14 @@ const getNextDrawingUserInRoom = room => {
     }
 }
 
-module.exports = { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getNextDrawingUserInRoom }
+
+//In this list of users, this would return the first user that's in a room with just themselves
+//...(I can use this to send my partner what the next available room to seat someone at is)
+const getOpenRoom = () => {
+    return users.filter(user => getUsersInRoom(user.room).length === 1)
+  }
+
+module.exports = { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getNextDrawingUserInRoom, getOpenRoom }
 
 
 

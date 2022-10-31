@@ -7,6 +7,12 @@ const { Server } = require('socket.io');
 const cors = require('cors')
 
 
+//This is just a placeholder (using for get/post requests)
+app.use(express.urlencoded({
+    extended: true
+}));
+
+
 app.use(cors());
 
 const server = http.createServer(app)
@@ -40,7 +46,7 @@ server.listen(PORT, () => {
 
 // The trial code stuff I added
 // --------------------------------------------------------------------------------------------
-const { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getNextDrawingUserInRoom } = require('./users')
+const { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getNextDrawingUserInRoom, getOpenRoom } = require('./users')
 
 io.on('connection', socket => {
     console.log("A NEW USER HAS JOINED")
@@ -54,9 +60,10 @@ io.on('connection', socket => {
         
         socket.join(newUser.room)
         // console.log(getUsersInRoom('2'))
+        // console.log(users)
         
 
-        socket.emit('setRole', newUser.role)
+        socket.emit('setRole', newUser.role) 
     })
 
 
@@ -130,8 +137,25 @@ io.on('connection', socket => {
 
 const path = require('path')
 //serve static assets in production
-app.use(express.static('../build'))
-app.get('*', (req, res) => {res.sendFile(path.resolve(__dirname, 'build', 'index.html'))})
+app.use(express.static(path.resolve(__dirname, '../build')))
+// app.get('*', (req, res) => {res.sendFile(path.resolve(__dirname, '../build', 'index.html'))})
+app.get('/game', (req, res) => {res.sendFile(path.resolve(__dirname, '../build', 'index.html'))})
+
+
+
+// app.get('/info', (req, res) => {
+//     console.log(req)
+//     console.log(req.query)
+// })
+
+//THIS IS SOMETHING I'M TRYING!
+app.get('/available_room', (req, res) => {
+    if(getOpenRoom().length !== 0){
+        res.send({"first_available_room":getOpenRoom()[0].room})
+    }else{
+        res.send({"first_available_room":null})
+    }
+})
 
 
 

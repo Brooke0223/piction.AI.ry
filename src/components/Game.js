@@ -9,7 +9,7 @@ import './Game.css'
 
 // const ENDPOINT = 'http://localhost:3001'
 // const ENDPOINT = 'https://main--jade-meringue-488563.netlify.app/'
-const ENDPOINT = 'https://piction-ai-ry.onrender.com'
+const ENDPOINT = window.location.origin
 const connectionOptions =  {
   "forceNew" : true,
   "reconnectionAttempts": "Infinity", 
@@ -32,6 +32,7 @@ const Game = (props) => {
 
   //User State
   const [ready, setReady] = useState(false)
+  const [joined, setJoined] = useState(false)
   const [tutorial, setTutorial] = useState(false)
   const [round, setRound] = useState(0)
   const [role, setRole] = useState('')
@@ -46,6 +47,13 @@ const Game = (props) => {
   const [messageInput, setMessageInput] = useState("")
   
 
+  //When a new socket joins, let the server know the socket's name and room number so the server can add that socket to that socket-room
+    if(joined === false){
+      setJoined(true)
+      socket.emit('join', room, name)
+    }  
+  
+  
   //When the user clicks "Start", update server that the player is ready to begin
   const onStartHandler = () => {
     setReady(true)
@@ -198,56 +206,96 @@ const Game = (props) => {
 
 
 
-  const isInitialMount = useRef(true); //I am only including this "useRef" thing here to prevent the useHook from mounting twice (while I'm in development), this is a know React issue (https://stackoverflow.com/questions/72238175/useeffect-is-running-twice-on-mount-in-react)
-  useEffect(() => {
+
+  // const isInitialMount = useRef(true); //I am only including this "useRef" thing here to prevent the useHook from mounting twice (while I'm in development), this is a known React issue (https://stackoverflow.com/questions/72238175/useeffect-is-running-twice-on-mount-in-react)
+  // useEffect(() => {
   
-  if (isInitialMount.current) {  
-          isInitialMount.current = false; //...and change the value to "false" for next time :)
-       } else {
+  // if (isInitialMount.current) {  
+  //         isInitialMount.current = false; //...and change the value to "false" for next time :)
+  //      } else {
     
-    //When a new socket joins, let the server know the socket's name and room number so the server can add that socket to that socket-room
-    socket.emit('join', room, name)
+  //   // //When a new socket joins, let the server know the socket's name and room number so the server can add that socket to that socket-room
+  //   // socket.emit('join', room, name)
     
-    //Upon joining, the socket returns back what that user's initial role will be
-    socket.on('setRole', role => {
-      setRole(role)
-      console.log(role)
-    })
+  //   //Upon joining, the socket returns back what that user's initial role will be
+  //   socket.on('setRole', role => {
+  //     setRole(role)
+  //     console.log(role)
+  //   })
 
-    //Game begins when server let's sockets know that both users have clicked "start"
-    socket.on('start-game', (word) => {
-      setRound(1)
-      setWord(word)
-      // console.log("I set the round to 1")
-      // console.log("word")
-    })
+  //   //Game begins when server let's sockets know that both users have clicked "start"
+  //   socket.on('start-game', (word) => {
+  //     console.log("I MADE IT TO HERE, FUCK YEAH!!!!!")
+  //     setRound(1)
+  //     setWord(word)
+  //     // console.log("I set the round to 1")
+  //     // console.log("word")
+  //   })
 
-    //When a drawing-user selects a new display image, the server informs all sockets to update their image
-    socket.on('updateImageResponse', (image) => {
-      setImage(image)
-    })
+  //   //When a drawing-user selects a new display image, the server informs all sockets to update their image
+  //   socket.on('updateImageResponse', (image) => {
+  //     setImage(image)
+  //   })
 
-    //When a drawing-user passes their turn or a guessing-user guesses the word correctly, the server informs all sockets to update their round #, their word, and reset any new round variables (like "image", "imageOptions", "searTerms", and "selectedImages")
-    socket.on('nextRoundResponse', (round, word) => {
-      setRound(round)
-      setWord(word)
-      setImage(placeholderImage)
-      setSearchTerms('')
-      setImageOptions([])
-      setSelectedImages([placeholderImage])
+  //   //When a drawing-user passes their turn or a guessing-user guesses the word correctly, the server informs all sockets to update their round #, their word, and reset any new round variables (like "image", "imageOptions", "searTerms", and "selectedImages")
+  //   socket.on('nextRoundResponse', (round, word) => {
+  //     setRound(round)
+  //     setWord(word)
+  //     setImage(placeholderImage)
+  //     setSearchTerms('')
+  //     setImageOptions([])
+  //     setSelectedImages([placeholderImage])
       
-    })
+  //   })
 
     
-    //When a drawing-user or guessing-user submits a guess and/or message that DOESN'T MATCH that round's word, the server informs all sockets to add that message to their messages array
-    socket.on('addMessageResponse', (message) => {
-      // setMessages(messages => [...messages, message]) //add the message to the users messages array
-      setMessages(messages => [...messages, message]) //add the message to the users messages array
-      console.log(messages)
-    })
+  //   //When a drawing-user or guessing-user submits a guess and/or message that DOESN'T MATCH that round's word, the server informs all sockets to add that message to their messages array
+  //   socket.on('addMessageResponse', (message) => {
+  //     // setMessages(messages => [...messages, message]) //add the message to the users messages array
+  //     setMessages(messages => [...messages, message]) //add the message to the users messages array
+  //     console.log(messages)
+  //   })
 
     
-  }}, [socket])
+  // }}, [socket])
+
+      //Upon joining, the socket returns back what that user's initial role will be
+      socket.on('setRole', role => {
+        setRole(role)
+        console.log(role)
+      })
+  
+      //Game begins when server let's sockets know that both users have clicked "start"
+      socket.on('start-game', (word) => {
+        setRound(1)
+        setWord(word)
+        // console.log("I set the round to 1")
+        // console.log("word")
+      })
+  
+      //When a drawing-user selects a new display image, the server informs all sockets to update their image
+      socket.on('updateImageResponse', (image) => {
+        setImage(image)
+      })
+  
+      //When a drawing-user passes their turn or a guessing-user guesses the word correctly, the server informs all sockets to update their round #, their word, and reset any new round variables (like "image", "imageOptions", "searTerms", and "selectedImages")
+      socket.on('nextRoundResponse', (round, word) => {
+        setRound(round)
+        setWord(word)
+        setImage(placeholderImage)
+        setSearchTerms('')
+        setImageOptions([])
+        setSelectedImages([placeholderImage])
+        
+      })
+  
+      
+      //When a drawing-user or guessing-user submits a guess and/or message that DOESN'T MATCH that round's word, the server informs all sockets to add that message to their messages array
+      socket.on('addMessageResponse', (message) => {
+        // setMessages(messages => [...messages, message]) //add the message to the users messages array
+        setMessages(messages => [...messages, message]) //add the message to the users messages array
+        console.log(messages)
+      })
 
 
 
