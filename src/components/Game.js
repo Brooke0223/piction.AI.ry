@@ -87,8 +87,9 @@ const Game = (props) => {
     // console.log(formattedSearchTerms)
 
     // send request to the API
-    const proxy_url = 'https://cors-anywhere.herokuapp.com/';
-    fetch(proxy_url+ 'https://lexica.art/api/v1/search?q=' + formattedSearchTerms)
+    // const proxy_url = 'https://cors-anywhere.herokuapp.com/';
+    // fetch(proxy_url+ 'https://lexica.art/api/v1/search?q=' + formattedSearchTerms)
+    fetch('https://lexica.art/api/v1/search?q=' + formattedSearchTerms)
       .then(response => response.json())
       .then(data => {
 
