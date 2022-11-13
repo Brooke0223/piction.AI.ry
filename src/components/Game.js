@@ -64,7 +64,7 @@ const Game = (props) => {
       setDifficulty(data.difficulty)
       setNumRounds(data.numberOfRounds)
       
-      // console.log(privacy, difficulty, numberOfRounds)
+      console.log("the room is: ", room, "the name is: ", name, "the matchmakingRequested is: ", matchMakingRequested, "the difficulty is: ", difficulty, "the number of rounds is: ", numRounds)
       // socket.emit('join', room, name, privacy, difficulty, numberOfRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
     })
 
