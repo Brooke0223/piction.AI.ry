@@ -57,8 +57,11 @@ const Game = (props) => {
       // //retrieve from partner's API whether this game-room is public or private
       const roomId = 'apple-unicorn-antarctica' //replace this with the actual "room" variable once my partner gets his API fully up-and-running
       const proxy_url = 'https://cors-anywhere.herokuapp.com/'; //replace the CORS proxy when the app is deployed
-      fetch('https://cs-361-microservice.herokuapp.com/game/' + roomId) //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
-      // fetch(proxy_url + 'https://cs-361-microservice.herokuapp.com/game/' + roomId) //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
+      fetch(proxy_url + 'https://cs-361-microservice.herokuapp.com/game/' + roomId, { //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
+        method : "GET",
+        mode: 'cors',
+        headers: headers,
+        })
         .then(response => response.json())
         .then(data => {
           

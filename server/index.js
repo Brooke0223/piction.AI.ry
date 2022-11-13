@@ -13,7 +13,10 @@ app.use(express.urlencoded({
 }));
 
 
-app.use(cors());
+app.use(
+    cors(
+        {origin: '*'}
+    ));
 
 const server = http.createServer(app)
 
