@@ -63,6 +63,7 @@ const getOpenRoom = () => {
     return users.filter(user => getUsersInRoom(user.room).length === 1 && user.matchMakingRequested=== true)
   }
 
+
 module.exports = { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getNextDrawingUserInRoom, getOpenRoom }
 
 
