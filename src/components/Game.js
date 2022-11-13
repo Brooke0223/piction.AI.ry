@@ -35,7 +35,7 @@ const Game = (props) => {
   const [joined, setJoined] = useState(false)
   const [tutorial, setTutorial] = useState(false)
   const [round, setRound] = useState(0)
-  const [numberOfRounds, setNumberOfRounds] = useState(0)
+  const [numRounds, setNumRounds] = useState(0)
   const [role, setRole] = useState('')
   const [word, setWord] = useState('')
   const [searchTerms, setSearchTerms] = useState('')
@@ -46,33 +46,34 @@ const Game = (props) => {
   const [selectedImages, setSelectedImages] = useState([placeholderImage])
   const [guessInput, setGuessInput] = useState("")
   const [messageInput, setMessageInput] = useState("")
+  const [matchMakingRequested, setMatchMakingRequested] = useState(false)
+  const [difficulty, setDifficulty] = useState(0)
   
 
   
+  // retrieve from partner's API the details of the game room (i.e. public/private, number of rounds, difficulty)
+  const roomId = 'apple-unicorn-antarctica' //replace this with the actual "room" variable once my partner gets his API fully up-and-running
+  const proxy_url = 'https://cors-anywhere.herokuapp.com/'; //replace the CORS proxy when the app is deployed
+  fetch('https://cs-361-microservice.herokuapp.com/game/' + roomId) //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
+    .then(response => response.json())
+    .then(data => {
+      
+      //save the room variables that get returned from the API
+      setMatchMakingRequested(data.matchmakingRequested)
+      setDifficulty(data.difficulty)
+      setNumRounds(data.numberOfRounds)
+      
+      // console.log(privacy, difficulty, numberOfRounds)
+      // socket.emit('join', room, name, privacy, difficulty, numberOfRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
+    })
+
   //When a new socket joins, let the server know the socket's name and room number so the server can add that socket to that socket-room
     if(joined === false){
       setJoined(true)
-      socket.emit('join', room, name)
-
-      // //retrieve from partner's API whether this game-room is public or private
-      const roomId = 'apple-unicorn-antarctica' //replace this with the actual "room" variable once my partner gets his API fully up-and-running
-      const proxy_url = 'https://cors-anywhere.herokuapp.com/'; //replace the CORS proxy when the app is deployed
-      fetch(proxy_url + 'https://cs-361-microservice.herokuapp.com/game/' + roomId, { //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
-        method : "GET",
-        mode: 'cors',
-        headers: headers,
-        })
-        .then(response => response.json())
-        .then(data => {
-          
-          //save the room variables that get returned from the API
-          const privacy = data.matchmakingRequested
-          const difficulty = data.difficulty
-          setNumberOfRounds(data.numberOfRounds)
-
-          socket.emit('join', room, name, privacy, difficulty, numberOfRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
-          console.log(privacy, difficulty, numberOfRounds)
-        })
+      // socket.emit('join', room, name)
+      
+      // console.log("the room is:", room, "the name is: ", name, "the matchmaking requested is: ", matchMakingRequested, "the difficulty is: ", difficulty, "the number of rounds is: ", numberOfRounds)
+      socket.emit('join', room, name, matchMakingRequested, difficulty, numRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
     }  
 
   
@@ -215,7 +216,7 @@ const Game = (props) => {
     
     //check if the message and that round's word match (everything lowercase)
     if(message.toLowerCase().includes(word.toLowerCase())){
-      console.log("It found the match!!!!!")
+      alert('You guessed it! You will now be the Drawing-Player')
       socket.emit('nextRoundRequest', round) //if the message matches that round's word, let the server know to update to the next round
     }else{ 
       socket.emit('addMessageRequest', message) //if the message and that round's word do NOT match, let the server know to send that message back to all the players in the room so that it can be added to everyone's array of messages (I will use the array to map out the messages in a chat box)
@@ -356,6 +357,7 @@ const Game = (props) => {
       {/* BOTH PLAYERS SEE THEIR ROLE IN THE GAME AND THE DISPLAY IMAGE*/}
       {(ready && round !== 0 && imageOptions.length === 0)  && 
         <>
+            <h4>Round: {round}</h4>
             <h1 class="text-center">You are the {role}!</h1>
             <img id="image" width="500" height="300" src={image}/>
         </>

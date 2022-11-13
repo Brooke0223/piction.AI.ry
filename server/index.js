@@ -56,14 +56,14 @@ io.on('connection', socket => {
 
 
     //The message it's getting is: socket.emit('join', room, name, privacy, difficulty, numberOfRounds)
-    socket.on('join', (room, name, privacy, difficulty, numberOfRounds) => {
+    socket.on('join', (room, name, matchMakingRequested, difficulty, numRounds) => {
         const { error, newUser} = addUser({
             id: socket.id,
             name: name,
             room: room,
-            privacy: privacy,
+            matchMakingRequested: matchMakingRequested,
             difficulty: difficulty,
-            numberOfRounds: numberOfRounds
+            numRounds: numRounds
         })
         
         socket.join(newUser.room)
