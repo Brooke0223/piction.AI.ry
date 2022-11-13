@@ -21,14 +21,14 @@ const socket = io(ENDPOINT, connectionOptions);
 
 
 
-
-const data = queryString.parse(window.location.search)
-const name = data.name
-const room = data.room
-const placeholderImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQE3CETL_OertJKScoHfblxs6CBrKGVCmVESw&usqp=CAU"
-
-
 const Game = (props) => {
+
+
+  const data = queryString.parse(window.location.search)
+  const name = data.name
+  const room = data.room
+  const placeholderImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQE3CETL_OertJKScoHfblxs6CBrKGVCmVESw&usqp=CAU"
+  
 
   //User State
   const [ready, setReady] = useState(false)
