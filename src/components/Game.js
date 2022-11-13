@@ -28,7 +28,7 @@ const Game = (props) => {
   const name = data.name
   const room = data.room
   const placeholderImage = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQE3CETL_OertJKScoHfblxs6CBrKGVCmVESw&usqp=CAU"
-  
+
 
   //User State
   const [ready, setReady] = useState(false)
@@ -47,35 +47,37 @@ const Game = (props) => {
   const [guessInput, setGuessInput] = useState("")
   const [messageInput, setMessageInput] = useState("")
   const [matchMakingRequested, setMatchMakingRequested] = useState(false)
-  const [difficulty, setDifficulty] = useState(0)
+  const [difficulty, setDifficulty] = useState(3)
   
 
   
   // retrieve from partner's API the details of the game room (i.e. public/private, number of rounds, difficulty)
-  const roomId = 'apple-unicorn-antarctica' //replace this with the actual "room" variable once my partner gets his API fully up-and-running
-  const proxy_url = 'https://cors-anywhere.herokuapp.com/'; //replace the CORS proxy when the app is deployed
+  // const roomId = 'apple-unicorn-antarctica' //replace this with the actual "room" variable once my partner gets his API fully up-and-running
+  // const proxy_url = 'https://cors-anywhere.herokuapp.com/'; //replace the CORS proxy when the app is deployed
   // fetch('https://cs-361-microservice.herokuapp.com/game/' + roomId) //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
-  fetch('https://cs-361-microservice.herokuapp.com/game/' + room) //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
-    .then(response => response.json())
-    .then(data => {
+  const CollectData = async () => {
+    let data = await fetch('https://cs-361-microservice.herokuapp.com/game/' + room) //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
+    data = await data.json();
+    if(data){
       
       //save the room variables that get returned from the API
       setMatchMakingRequested(data.matchmakingRequested)
       setDifficulty(data.difficulty)
       setNumRounds(data.numberOfRounds)
+    
       
-      console.log("the room is: ", room, "the name is: ", name, "the matchmakingRequested is: ", matchMakingRequested, "the difficulty is: ", difficulty, "the number of rounds is: ", numRounds)
-      // socket.emit('join', room, name, privacy, difficulty, numberOfRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
-    })
-
-  //When a new socket joins, let the server know the socket's name and room number so the server can add that socket to that socket-room
-    if(joined === false){
       setJoined(true)
-      // socket.emit('join', room, name)
+      //When a new socket joins, let the server know the socket's name, room number, etc. so the server can add that socket to that socket-room
+      socket.emit('join', room, name, data.matchmakingRequested, data.difficulty, data.numberOfRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
       
-      // console.log("the room is:", room, "the name is: ", name, "the matchmaking requested is: ", matchMakingRequested, "the difficulty is: ", difficulty, "the number of rounds is: ", numberOfRounds)
-      socket.emit('join', room, name, matchMakingRequested, difficulty, numRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
-    }  
+    }
+  }
+
+  // Player Data will fetch once upon page mount
+  useEffect(() => {
+    CollectData()
+  }, [])
+
 
   
   //When the user clicks "Start", update server that the player is ready to begin

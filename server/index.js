@@ -72,6 +72,12 @@ io.on('connection', socket => {
         // console.log(users)
         // console.log(newUser)
         
+        // console.log("The room this user is in is: ", newUser.room)
+        // console.log(getUsersInRoom(newUser.room))
+        // console.log("The amount of people in the open room is: ", getOpenRoom().length)
+        // console.log("The first open room is: ", getOpenRoom()[0].room)
+        // console.log({"first_available_room":getOpenRoom()[0].room})
+        
         socket.emit('setRole', newUser.role) 
     })
 

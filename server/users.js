@@ -1,6 +1,6 @@
 const users = []
 
-const addUser = ({id, name, room, privacy, difficulty, numberOfRounds}) => {
+const addUser = ({id, name, room, matchMakingRequested, difficulty, numRounds}) => {
     // const numberOfUsersInRoom = users.filter(user => user.room === room).length
     // if(numberOfUsersInRoom === 2)
     // return { error: 'Room full' }
@@ -16,7 +16,7 @@ const addUser = ({id, name, room, privacy, difficulty, numberOfRounds}) => {
     else{
         role = "Guessing-Player"
     }
-    const newUser = { id, name, room, role, privacy, difficulty, numberOfRounds }
+    const newUser = { id, name, room, role, matchMakingRequested, difficulty, numRounds }
     newUser.ready = 'No'
     newUser.numCorrectWords = 0 //I will increase this everytime the room correctly guessed a word (will be used to tally total correctly-guessed words at the end of the game)
     users.push(newUser)
