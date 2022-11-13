@@ -1,3 +1,13 @@
 * {
     text-align: center;
 }
+
+/* #imageWrapper {
+    background-color: yellow;
+    display: grid;
+    justify-items: space-around;
+    grid-template-columns: 160px 160px;
+    grid-template-rows: 160px 160px;
+    align-items: center;
+    justify-content: center;
+  } */

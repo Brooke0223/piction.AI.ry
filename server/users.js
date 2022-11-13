@@ -1,6 +1,6 @@
 const users = []
 
-const addUser = ({id, name, room}) => {
+const addUser = ({id, name, room, privacy, difficulty, numberOfRounds}) => {
     // const numberOfUsersInRoom = users.filter(user => user.room === room).length
     // if(numberOfUsersInRoom === 2)
     // return { error: 'Room full' }
@@ -16,10 +16,12 @@ const addUser = ({id, name, room}) => {
     else{
         role = "Guessing-Player"
     }
-
-    const newUser = { id, name, room, role }
+    const newUser = { id, name, room, role, privacy, difficulty, numberOfRounds }
     newUser.ready = 'No'
+    newUser.numCorrectWords = 0 //I will increase this everytime the room correctly guessed a word (will be used to tally total correctly-guessed words at the end of the game)
     users.push(newUser)
+
+    // console.log(newUser)
     return { newUser }
 }
 
@@ -38,6 +40,7 @@ const getUsersInRoom = room => {
     return users.filter(user => user.room === room)
 }
 
+
 const getDrawingUserInRoom = room => {
     const users = getUsersInRoom(room)
     return users.filter(user => user.role === 'Drawing-Player')
@@ -54,10 +57,10 @@ const getNextDrawingUserInRoom = room => {
 }
 
 
-//In this list of users, this would return the first user that's in a room with just themselves
+//In this list of users, this would return the first user that's in a room with just themselves and the room is not set to private
 //...(I can use this to send my partner what the next available room to seat someone at is)
 const getOpenRoom = () => {
-    return users.filter(user => getUsersInRoom(user.room).length === 1)
+    return users.filter(user => getUsersInRoom(user.room).length === 1 && user.privacy=== false)
   }
 
 module.exports = { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getNextDrawingUserInRoom, getOpenRoom }

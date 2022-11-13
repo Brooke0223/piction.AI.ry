@@ -51,18 +51,24 @@ const { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getN
 io.on('connection', socket => {
     console.log("A NEW USER HAS JOINED")
 
-    socket.on('join', (room, name) => {
+
+    //The message it's getting is: socket.emit('join', room, name, privacy, difficulty, numberOfRounds)
+    socket.on('join', (room, name, privacy, difficulty, numberOfRounds) => {
         const { error, newUser} = addUser({
             id: socket.id,
             name: name,
-            room: room
+            room: room,
+            privacy: privacy,
+            difficulty: difficulty,
+            numberOfRounds: numberOfRounds
         })
         
         socket.join(newUser.room)
-        // console.log(getUsersInRoom('2'))
-        // console.log(users)
         
-
+        // console.log(getUsersInRoom('apple-unicorn-antarctica'))
+        // console.log(users)
+        // console.log(newUser)
+        
         socket.emit('setRole', newUser.role) 
     })
 
@@ -156,6 +162,7 @@ app.get('/available_room', (req, res) => {
         res.send({"first_available_room":null})
     }
 })
+
 
 
 

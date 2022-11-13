@@ -35,6 +35,7 @@ const Game = (props) => {
   const [joined, setJoined] = useState(false)
   const [tutorial, setTutorial] = useState(false)
   const [round, setRound] = useState(0)
+  const [numberOfRounds, setNumberOfRounds] = useState(0)
   const [role, setRole] = useState('')
   const [word, setWord] = useState('')
   const [searchTerms, setSearchTerms] = useState('')
@@ -47,12 +48,30 @@ const Game = (props) => {
   const [messageInput, setMessageInput] = useState("")
   
 
+  
   //When a new socket joins, let the server know the socket's name and room number so the server can add that socket to that socket-room
     if(joined === false){
       setJoined(true)
       socket.emit('join', room, name)
+
+      // //retrieve from partner's API whether this game-room is public or private
+      const roomId = 'apple-unicorn-antarctica' //replace this with the actual "room" variable once my partner gets his API fully up-and-running
+      const proxy_url = 'https://cors-anywhere.herokuapp.com/'; //replace the CORS proxy when the app is deployed
+      fetch('https://cs-361-microservice.herokuapp.com/game/' + roomId) //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
+      // fetch(proxy_url + 'https://cs-361-microservice.herokuapp.com/game/' + roomId) //also replace this with the actual "room" variable once my partner gets his API fully up-and-running
+        .then(response => response.json())
+        .then(data => {
+          
+          //save the room variables that get returned from the API
+          const privacy = data.matchmakingRequested
+          const difficulty = data.difficulty
+          setNumberOfRounds(data.numberOfRounds)
+
+          socket.emit('join', room, name, privacy, difficulty, numberOfRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
+          console.log(privacy, difficulty, numberOfRounds)
+        })
     }  
-  
+
   
   //When the user clicks "Start", update server that the player is ready to begin
   const onStartHandler = () => {
@@ -306,9 +325,18 @@ const Game = (props) => {
   return (
     <div>
       
+      {/* BOTH PLAYERS SEE THE NAV BAR */}
+      <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <a class="navbar-brand text-secondary">picture.AI.ry</a>
+          </div>
+        </div>
+      </nav>
       
+
       {/* BOTH PLAYERS SEE THE INITIAL START-UP SCREEN */}
-      {(tutorial !== true) && <h1>Room {room}</h1>}
+      {(tutorial !== true) && <h4 class="text-center">Game Room: {room}</h4>}
       {(!ready && tutorial === false) && <button onClick={onStartHandler}>Play Game</button>}
       {(!ready && tutorial === false) && <button onClick={onTutorialHandler}>Learn More</button>}
       {(!ready && tutorial === true) && 
@@ -325,7 +353,7 @@ const Game = (props) => {
       {/* BOTH PLAYERS SEE THEIR ROLE IN THE GAME AND THE DISPLAY IMAGE*/}
       {(ready && round !== 0 && imageOptions.length === 0)  && 
         <>
-            <h1>You are the {role}!</h1>
+            <h1 class="text-center">You are the {role}!</h1>
             <img id="image" width="500" height="300" src={image}/>
         </>
       }
@@ -387,7 +415,6 @@ const Game = (props) => {
       ? <h1>You are a drawing player</h1>
       : <h1>You are a guessing player</h1>
       } */}
-      
     </div>
   )
 }
