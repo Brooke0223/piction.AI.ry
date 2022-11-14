@@ -69,7 +69,7 @@ const Game = (props) => {
       setJoined(true)
       //When a new socket joins, let the server know the socket's name, room number, etc. so the server can add that socket to that socket-room
       socket.emit('join', room, name, data.matchmakingRequested, data.difficulty, data.numberOfRounds) ////When a new socket joins, let the server know the socket's name, room number, and room privacy so the server can add that socket to that socket-room
-      
+
     }
   }
 
@@ -220,6 +220,7 @@ const Game = (props) => {
     //check if the message and that round's word match (everything lowercase)
     if(message.toLowerCase().includes(word.toLowerCase())){
       alert('You guessed it! You will now be the Drawing-Player')
+      socket.emit('numCorrectWordsRequest') //if the message matches that round's word, let the server know to update the numCorrectWords
       socket.emit('nextRoundRequest', round) //if the message matches that round's word, let the server know to update to the next round
     }else{ 
       socket.emit('addMessageRequest', message) //if the message and that round's word do NOT match, let the server know to send that message back to all the players in the room so that it can be added to everyone's array of messages (I will use the array to map out the messages in a chat box)
@@ -230,8 +231,11 @@ const Game = (props) => {
   }
 
 
-
-
+  //When the game is over, display the % of correctly guessed words, and reload the page (so the user can choose to either play again or view the tutorial)
+  const endGame = (percentage) => {
+    alert(`Game over! You and your partner correctly guessed ${percentage}% of the words!`)
+    // window.location.reload()
+  }
 
 
   // const isInitialMount = useRef(true); //I am only including this "useRef" thing here to prevent the useHook from mounting twice (while I'm in development), this is a known React issue (https://stackoverflow.com/questions/72238175/useeffect-is-running-twice-on-mount-in-react)
@@ -315,8 +319,22 @@ const Game = (props) => {
         setSelectedImages([placeholderImage])
         
       })
-  
       
+
+      // When the end of the game has been reached, let the players know the final percentage, and refresh the page so they can either start again or not
+      socket.on('endGameRequest', (percentage) => {
+        
+        //I'm only implementing it like this (with the "round !===" thing) because otherwise it was rendering like 7-8 times with a million alerts?????
+        if(round !== -1){
+          alert(`Game over! You and your partner correctly guessed ${percentage}% of the words!`)
+          window.location.reload()
+          round = -1
+        }  
+
+      })
+      
+
+
       //When a drawing-user or guessing-user submits a guess and/or message that DOESN'T MATCH that round's word, the server informs all sockets to add that message to their messages array
       socket.on('addMessageResponse', (message) => {
         // setMessages(messages => [...messages, message]) //add the message to the users messages array
@@ -336,7 +354,7 @@ const Game = (props) => {
       <nav class="navbar navbar-inverse">
         <div class="container-fluid">
           <div class="navbar-header">
-            <a class="navbar-brand text-secondary">picture.AI.ry</a>
+            <a class="navbar-brand text-secondary">piction.AI.ry</a>
           </div>
         </div>
       </nav>

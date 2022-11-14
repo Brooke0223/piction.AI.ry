@@ -105,12 +105,36 @@ io.on('connection', socket => {
     })
 
 
+    //When a Guessing-User correctly guesses the round's word, update the 'numCorrectWords' variable to reflect
+    socket.on('numCorrectWordsRequest', () => {
+        
+        // make variables for both players in the room
+        const user = getUser(socket.id)
+        const room = user.room
+        const opponent = getDrawingUserInRoom(room)[0]
+        
+        
+        // update 'numCorrectWords' attribute for each player (they're playing as a team, so we just tally any increments to both players)
+        user.numCorrectWords+=1
+        opponent.numCorrectWords+=1
+    })
 
     //When a Drawing-User selects to "pass" their turn --OR-- When a Guessing-User guesses the word correctly
     socket.on('nextRoundRequest', round => {
         const user = getUser(socket.id)
 
         const word = terms[Math.floor(Math.random()*terms.length)] //generate a new word for the next round
+
+        // if the game is over
+        if(round === user.numRounds){
+            const percentage = (user.numCorrectWords/user.numRounds).toFixed(2)*100
+            console.log(`You correctly guessed ${percentage}% of the words!`)
+            const room = user.room
+            const player = getNextDrawingUserInRoom(room)
+            const opponent = getDrawingUserInRoom(room)[0]
+            // console.log(player, opponent)
+            io.to(user.room).emit('endGameRequest', percentage) //let everyone in the room know the final percentage of correctly-guessed words
+        } else{ //otherwise if the game is *NOT* over, and we just need to progress to the next round
         io.to(user.room).emit('nextRoundResponse', round+1, word) //let everyone in the room know the new word, and the new round # (for the new round)
 
         //FYI the sender can be either the "Drawing-User" (i.e. they selected to pass their turn), or (I will implement later) where a "Guessing-Player" can send a "nextRoundRequest" if they guess the word correctly
@@ -122,7 +146,7 @@ io.on('connection', socket => {
 
         drawingPlayer.role = 'Guessing-Player'
         nextDrawingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
-
+        }
     })
 
     //When a drawing-user OR guessing-user submit a message and/or guess that DOESN'T match that round's word, we should just send the message back to all the player's in the room in order to add that message to all the player's messages array
