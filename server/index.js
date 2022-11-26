@@ -51,10 +51,18 @@ server.listen(PORT, () => {
 // --------------------------------------------------------------------------------------------
 const { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getNextDrawingUserInRoom, getOpenRoom } = require('./users')
 
+
+const calculateExpirationTime = () => {
+    let expirationTime = new Date();
+    return expirationTime.setSeconds(expirationTime.getSeconds() + 60);
+}
+
+
 io.on('connection', socket => {
     console.log("A NEW USER HAS JOINED")
 
 
+    //***REINSTATE THIS CODE-BLOCK BEFORE PUSHING TO GITHUB!!!!! (MAKES IT WORK W/ PARTNER'S MICROSERVICE)***
     //The message it's getting is: socket.emit('join', room, name, privacy, difficulty, numberOfRounds)
     socket.on('join', (room, name, matchMakingRequested, difficulty, numRounds) => {
         const { error, newUser} = addUser({
@@ -65,18 +73,29 @@ io.on('connection', socket => {
             difficulty: difficulty,
             numRounds: numRounds
         })
+
+
+    // //***REMOVE THIS CODE-BLOCK BEFORE PUSHING TO GITHUB!!!!! (MAKES IT WORK W/ ON LOCAL HOST)***
+    // socket.on('join', (room, name) => {
+    //     const { error, newUser} = addUser({
+    //         id: socket.id,
+    //         name: name,
+    //         room: room
+    //     })
         
         socket.join(newUser.room)
+
+
         
-        // console.log(getUsersInRoom('apple-unicorn-antarctica'))
-        // console.log(users)
-        // console.log(newUser)
+    //     // console.log(getUsersInRoom('apple-unicorn-antarctica'))
+    //     // console.log(users)
+    //     // console.log(newUser)
         
-        // console.log("The room this user is in is: ", newUser.room)
-        // console.log(getUsersInRoom(newUser.room))
-        // console.log("The amount of people in the open room is: ", getOpenRoom().length)
-        // console.log("The first open room is: ", getOpenRoom()[0].room)
-        // console.log({"first_available_room":getOpenRoom()[0].room})
+    //     // console.log("The room this user is in is: ", newUser.room)
+    //     // console.log(getUsersInRoom(newUser.room))
+    //     // console.log("The amount of people in the open room is: ", getOpenRoom().length)
+    //     // console.log("The first open room is: ", getOpenRoom()[0].room)
+    //     // console.log({"first_available_room":getOpenRoom()[0].room})
         
         socket.emit('setRole', newUser.role) 
     })
@@ -93,7 +112,9 @@ io.on('connection', socket => {
 
         if(getUsersInRoom(user.room).length === 2 && getUsersInRoom(user.room)[0].ready === 'Yes' && getUsersInRoom(user.room)[1].ready === 'Yes' ){
             const word = terms[Math.floor(Math.random()*terms.length)]
-            io.to(user.room).emit('start-game', word)
+            const expirationTime = calculateExpirationTime()
+            // io.to(user.room).emit('start-game', word, expirationTime)
+            io.to(user.room).emit('nextRoundResponse', 1, word, expirationTime) //let everyone in the room know the new word, and the new round # (for the new round)
         }
     })
 
@@ -124,6 +145,7 @@ io.on('connection', socket => {
         const user = getUser(socket.id)
 
         const word = terms[Math.floor(Math.random()*terms.length)] //generate a new word for the next round
+        const expirationTime = calculateExpirationTime()
 
         // if the game is over
         if(round === user.numRounds){
@@ -135,7 +157,7 @@ io.on('connection', socket => {
             // console.log(player, opponent)
             io.to(user.room).emit('endGameRequest', percentage) //let everyone in the room know the final percentage of correctly-guessed words
         } else{ //otherwise if the game is *NOT* over, and we just need to progress to the next round
-        io.to(user.room).emit('nextRoundResponse', round+1, word) //let everyone in the room know the new word, and the new round # (for the new round)
+        io.to(user.room).emit('nextRoundResponse', round+1, word, expirationTime) //let everyone in the room know the new word, and the new round # (for the new round)
 
         //FYI the sender can be either the "Drawing-User" (i.e. they selected to pass their turn), or (I will implement later) where a "Guessing-Player" can send a "nextRoundRequest" if they guess the word correctly
         const drawingPlayer = getDrawingUserInRoom(user.room)[0]
@@ -386,7 +408,6 @@ app.get('/available_room', (req, res) => {
 
 
 // })
-
 
 
 
