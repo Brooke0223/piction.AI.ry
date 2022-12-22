@@ -1,5 +1,3 @@
-// export const terms = ["word1", "word2", "word3"]
-
 const terms = [
     "ant", 
     "box", 
@@ -78,12 +76,7 @@ const terms = [
     "ship",
     "doll",
     "monster",
-    "ring"
-]
-
-
-
-const mediumTerms = [
+    "ring",
     "tie",
     "teapot",
     "saxophone",
@@ -128,10 +121,7 @@ const mediumTerms = [
     "stocking",
     "dock",
     "read",
-    "puddle"
-]
-
-const hardTerms = [
+    "puddle",
     "stage",
     "manatee",
     "password",
@@ -179,4 +169,4 @@ const hardTerms = [
 
 // module.exports = terms, mediumTerms, hardTerms;
 // module.exports = { terms, mediumTerms, hardTerms };
-module.exports = terms, mediumTerms, hardTerms;
+module.exports = terms;

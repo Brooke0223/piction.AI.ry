@@ -1,0 +1,67 @@
+/* Class Selector . */
+/* ID Selector # */
+/* Element Selector h2 */
+
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+
+.tutorial-modal-background{
+    height: 100vh;
+    width: 100vw;
+    /* background-color: rgba(0,0,0, 0.4); /* Black w/opacity/see-through  */
+    /* background-image: url('../assets/blue-background-5.png');    
+    background-position: center;
+    background-repeat: repeat;
+    background-size: 15em; */
+    position: absolute;
+    z-index: 20;
+    /* backdrop-filter: blur(); */
+    /* filter: blur(8px); */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tutorial{
+    height: 80vh;
+    width: 80vw;
+    overflow: scroll;
+    /* background-color: rgb(255, 255, 255); */
+    /* background-image: url('../assets/notebook-img.jpg'); */
+    /* background-color:  rgba(255, 255, 255, 0.95); */
+    /* background-repeat: no-repeat;
+    background-size: 100% 80%; */
+    background-color: #ffffff;
+
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border-radius: 25px;
+    color: rgb(89, 90, 91);
+    font-family: Helvetica;
+    padding: 0;
+}
+
+.tutorial-contents{
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.exitButton{
+    float: right;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+
+.top-notepad{
+    background-color: #ffcc00;
+    /* width: 100%; */
+    padding-top: 15px;
+    position: relative;
+    top: -25px;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    border-bottom: 4px dashed rgb(153, 151, 151);
+    border-left: 1px solid rgb(213, 211, 211);
+    border-right: 1px solid rgb(213, 211, 211);
+    border-top: 1px solid rgb(213, 211, 211);
+}

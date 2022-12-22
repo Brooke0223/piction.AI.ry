@@ -1,0 +1,31 @@
+/* Class Selector . */
+/* ID Selector # */
+/* Element Selector h2 */
+
+.modal-background{
+    height: 100%;
+    width: 100%;
+    /* background-color: rgba(0,0,0, 0.4); /* Black w/opacity/see-through  */
+    /* position: absolute; */
+    /* backdrop-filter: blur(); */
+    /* filter: blur(8px); */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.309);
+}
+
+.modal-contents{
+    /* height: 25vh;
+    width: 60vw; */
+    /* background-color: #00ff2a; */
+    max-width: 70vw;
+    background-color: #ffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+    border-radius: 15px;
+    color: rgb(89, 90, 91);
+}

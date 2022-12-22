@@ -1,27 +1,24 @@
 const users = []
 
-const addUser = ({id, name, room, matchMakingRequested, difficulty, numRounds}) => {
-    // const numberOfUsersInRoom = users.filter(user => user.room === room).length
-    // if(numberOfUsersInRoom === 2)
-    // return { error: 'Room full' }
 
-    // const existingUser = users.filter(user => user.name === name)
-    // if(existingUser)
-    // return { error: 'User already in room' }
-
+const addUser = ({id, room}) => {
+    const numberOfUsersInRoom = users.filter(user => user.room === room).length
     let role
-    if(getUsersInRoom(room).length === 0) {
-        role = "Drawing-Player"
+    
+    if(numberOfUsersInRoom === 2){
+        return { error: 'Room full' }
     }
-    else{
-        role = "Guessing-Player"
-    }
-    const newUser = { id, name, room, role, matchMakingRequested, difficulty, numRounds }
-    newUser.ready = 'No'
-    newUser.numCorrectWords = 0 //I will increase this everytime the room correctly guessed a word (will be used to tally total correctly-guessed words at the end of the game)
-    users.push(newUser)
 
-    // console.log(newUser)
+    //I think I can do away with most of this though and simplify it, because I'm making it where if a player leaves, the game will reset--THUS if you're the first player in a room you are the 'Drawing-Player', and if you're the second player, you are the 'Guessing-Player', PERIOD.
+    else if(numberOfUsersInRoom === 1){
+        const { role: roleOfPartner } = getPartner()
+        role = (roleOfPartner === 'Drawing-Player') ? 'Guessing-Player' : 'Drawing-Player'
+    }else{
+        role = 'Drawing-Player'
+    }
+    
+    const newUser = { id, room, role, ready: false, numCorrectWords: 0 }
+    users.push(newUser)
     return { newUser }
 }
 
@@ -36,6 +33,17 @@ const getUser = id => {
     return users.find(user => user.id === id)
 }
 
+const getRoom = id => {
+    const user = users.find(user => user.id === id)
+    return user.room
+}
+
+//This returns the *OTHER* user in the room (i.e. if there's one who *doesn't* match the user.id we plugged in)
+//MAYBE I COULD RENAME THIS--"getPartner"?
+const getPartner = id => {
+    return users.find(user => user.id !== id)
+}
+
 const getUsersInRoom = room => {
     return users.filter(user => user.room === room)
 }
@@ -43,28 +51,16 @@ const getUsersInRoom = room => {
 
 const getDrawingUserInRoom = room => {
     const users = getUsersInRoom(room)
-    return users.filter(user => user.role === 'Drawing-Player')
+    return users.filter(user => user.role === 'Drawing-Player')[0]
 }
 
-const getNextDrawingUserInRoom = room => {
-    const drawingUser = getDrawingUserInRoom(room)
-    const index = users.findIndex(user => user.role === 'Drawing-Player')
-    if(index === getUsersInRoom(room).length-1){
-        return getUsersInRoom(room)[0]
-    } else {
-        return getUsersInRoom(room)[index+1]
-    }
+const getGuessingUserInRoom = room => {
+    const users = getUsersInRoom(room)
+    return users.filter(user => user.role === 'Guessing-Player')[0]
 }
 
 
-//In this list of users, this would return the first user that's in a room with just themselves and the room is not set to private
-//...(I can use this to send my partner what the next available room to seat someone at is)
-const getOpenRoom = () => {
-    return users.filter(user => getUsersInRoom(user.room).length === 1 && user.matchMakingRequested=== true)
-  }
-
-
-module.exports = { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getNextDrawingUserInRoom, getOpenRoom }
+module.exports = { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getGuessingUserInRoom, getPartner, getRoom }
 
 
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import Game from './components/Game';
-import Join from './components/Join';
+import Game from './pages/Game';
+import Join from './pages/Join';
 
 //I don't think I need Router/Route/Routes/BrowserRouter though because I'm not sending users to any other pages?
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
