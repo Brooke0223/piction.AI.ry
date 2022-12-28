@@ -88,18 +88,143 @@ io.on('connection', socket => {
     })
 
 
-    socket.on('readyRequest', () => {
+    socket.on('nextRoundRequestReady', () => {
         const user = getUser(socket.id)
         user.ready = true
         const partner = getPartner(socket.id)
         
-        //If there is a second player already in the game and they are also set to "ready", we're good to start the game
+        //Only start the game if there is a second player already in the game and they are also set to "ready"
         if(partner && partner.ready === true){
+            const drawingPlayer = getDrawingUserInRoom(user.room)
+            const guessingPlayer = getGuessingUserInRoom(user.room)
+
             const word = generateWord()
             const currentTime = getCurrentTime()
             const modalExpirationTime = currentTime + 6
             const roundExpirationTime = modalExpirationTime + 61
-            io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime) //let everyone in the room know the new word, and the new round # (for the new round)
+            const drawingModalMessage = 'The game is starting soon. You are first to draw!'
+            const guessingModalMessage = 'The game is starting soon. Your partner is first to draw!'
+
+            // io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, modalMessage) //let everyone in the room know the new word, and the new round # (for the new round)
+            io.to(drawingPlayer.id).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, drawingModalMessage)
+            io.to(guessingPlayer.id).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, guessingModalMessage)
+        }
+    })
+
+
+    socket.on('nextRoundRequestCorrectGuess', round => {
+        const user = getUser(socket.id)
+        let drawingPlayer = getDrawingUserInRoom(user.room)
+        let guessingPlayer = getGuessingUserInRoom(user.room)
+
+        //Update number of correctly-guessed words
+        drawingPlayer.numCorrectWords+=1 // update 'numCorrectWords' attribute for each player (they're playing as a team, so we just tally any increments to both players)
+        guessingPlayer.numCorrectWords+=1
+
+        if(round !== 10){
+            // Update socket roles
+            drawingPlayer.role = 'Guessing-Player'
+            guessingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
+
+            //Update drawingPlayer/guessingPlayer variables (as roles have switched)
+            //I SHOULD TRY TO CHANGE THE "setRole" THING SO THAT IT'S JUST ALL DONE WITH THE NEXT ROUND RESPONSE THING?
+            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') //let ONLY the Drawing-Player in the room know that they are now a "Guessing-Player"
+            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player') //let ONLY the next Drawing-Player in the room know that they are now the "Drawing-Player"
+            drawingPlayer = getDrawingUserInRoom(user.room)
+            guessingPlayer = getGuessingUserInRoom(user.room)
+
+            const word = generateWord()
+            const currentTime = getCurrentTime()
+            const modalExpirationTime = currentTime + 6
+            const roundExpirationTime = modalExpirationTime + 61
+            const drawingModalMessage = 'You correctly guessed the word! You are next to draw!'
+            const guessingModalMessage = 'Your partner correctly guessed the word! They are next to draw!'
+
+            // io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, modalMessage) //let everyone in the room know the new word, and the new round # (for the new round)
+            io.to(drawingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, drawingModalMessage)
+            io.to(guessingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, guessingModalMessage)
+        } else{
+            const percentage = (user.numCorrectWords/10).toFixed(2)*100
+            const drawingModalMessage = 'You correctly guessed the word!'
+            const guessingModalMessage = 'Your partner correctly guessed the word!'
+            drawingPlayer.ready = false
+            guessingPlayer.ready = false
+            io.to(drawingPlayer.id).emit('endGameRequest', percentage, drawingModalMessage)
+            io.to(guessingPlayer.id).emit('endGameRequest', percentage, guessingModalMessage)
+        }
+    })
+
+    socket.on('nextRoundRequestTimeExpired', round => {
+        const user = getUser(socket.id)
+        let drawingPlayer = getDrawingUserInRoom(user.room)
+        let guessingPlayer = getGuessingUserInRoom(user.room)
+
+        if(round !== 10){
+            // Update socket roles
+            drawingPlayer.role = 'Guessing-Player'
+            guessingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
+
+            //Update drawingPlayer/guessingPlayer variables (as roles have switched)
+            //I SHOULD TRY TO CHANGE THE "setRole" THING SO THAT IT'S JUST ALL DONE WITH THE NEXT ROUND RESPONSE THING?
+            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') //let ONLY the Drawing-Player in the room know that they are now a "Guessing-Player"
+            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player') //let ONLY the next Drawing-Player in the room know that they are now the "Drawing-Player"
+            drawingPlayer = getDrawingUserInRoom(user.room)
+            guessingPlayer = getGuessingUserInRoom(user.room)
+
+            const word = generateWord()
+            const currentTime = getCurrentTime()
+            const modalExpirationTime = currentTime + 6
+            const roundExpirationTime = modalExpirationTime + 61
+            const drawingModalMessage = 'Time ran out! You are next to draw!'
+            const guessingModalMessage = 'Time ran out! Your partner is next to draw!'
+
+            // io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, modalMessage) //let everyone in the room know the new word, and the new round # (for the new round)
+            io.to(drawingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, drawingModalMessage)
+            io.to(guessingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, guessingModalMessage)
+        } else{
+            const percentage = (user.numCorrectWords/10).toFixed(2)*100
+            const modalMessage = 'Time ran out!'
+            drawingPlayer.ready = false
+            guessingPlayer.ready = false
+            io.to(user.room).emit('endGameRequest', percentage, modalMessage)
+        }
+    })
+
+    socket.on('nextRoundRequestPass', round => {
+        const user = getUser(socket.id)
+        let drawingPlayer = getDrawingUserInRoom(user.room)
+        let guessingPlayer = getGuessingUserInRoom(user.room)
+
+        if(round !== 10){
+            // Update socket roles
+            drawingPlayer.role = 'Guessing-Player'
+            guessingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
+
+            //Update drawingPlayer/guessingPlayer variables (as roles have switched)
+            //I SHOULD TRY TO CHANGE THE "setRole" THING SO THAT IT'S JUST ALL DONE WITH THE NEXT ROUND RESPONSE THING?
+            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') //let ONLY the Drawing-Player in the room know that they are now a "Guessing-Player"
+            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player') //let ONLY the next Drawing-Player in the room know that they are now the "Drawing-Player"
+            drawingPlayer = getDrawingUserInRoom(user.room)
+            guessingPlayer = getGuessingUserInRoom(user.room)
+
+            const word = generateWord()
+            const currentTime = getCurrentTime()
+            const modalExpirationTime = currentTime + 6
+            const roundExpirationTime = modalExpirationTime + 61
+            const drawingModalMessage = 'Your partner passed their turn! You are next to draw!'
+            const guessingModalMessage = 'You passed your turn! Your partner is next to draw!'
+            
+            // io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, modalMessage) //let everyone in the room know the new word, and the new round # (for the new round)
+            io.to(drawingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, drawingModalMessage)
+            io.to(guessingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, guessingModalMessage)
+        } else{
+            const percentage = (user.numCorrectWords/10).toFixed(2)*100
+            const drawingModalMessage = 'You passed!'
+            const guessingModalMessage = 'Your partner passed!'
+            drawingPlayer.ready = false
+            guessingPlayer.ready = false
+            io.to(drawingPlayer.id).emit('endGameRequest', percentage, drawingModalMessage)
+            io.to(guessingPlayer.id).emit('endGameRequest', percentage, guessingModalMessage)
         }
     })
 
@@ -108,46 +233,6 @@ io.on('connection', socket => {
     socket.on('updateImageRequest', image => {
         const user = getUser(socket.id)
         io.to(user.room).emit('updateImageResponse', image)
-    })
-
-
-    //When a Guessing-User correctly guesses the round's word, update the 'numCorrectWords' variable to reflect
-    socket.on('numCorrectWordsRequest', () => {
-        
-        // make variables for both players in the room
-        const user = getUser(socket.id)
-        const partner = getPartner(socket.id)
-        
-
-        // update 'numCorrectWords' attribute for each player (they're playing as a team, so we just tally any increments to both players)
-        user.numCorrectWords+=1
-        partner.numCorrectWords+=1
-    })
-
-    //When a Drawing-User selects to "pass" their turn --OR-- When a Guessing-User guesses the word correctly
-    socket.on('nextRoundRequest', round => {
-        const user = getUser(socket.id)
-        const room = getRoom(socket.id)
-
-        // if the game is over
-        if(round === 10){
-            const percentage = (user.numCorrectWords/10).toFixed(2)*100
-            io.to(room).emit('endGameRequest', percentage) //let everyone in the room know the final percentage of correctly-guessed words
-        } else{ //otherwise if the game is *NOT* over, and we just need to progress to the next round
-            const word = terms[Math.floor(Math.random()*terms.length)] //generate a new word for the next round
-            const currentTime = getCurrentTime()
-            const modalExpirationTime = currentTime + 5
-            const roundExpirationTime = modalExpirationTime + 60
-            io.to(room).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime) //let everyone in the room know the new word, and the new round # (for the new round)
-
-            //FYI the sender can be either the "Drawing-User" (i.e. they selected to pass their turn), or (I will implement later) where a "Guessing-Player" can send a "nextRoundRequest" if they guess the word correctly
-            const drawingPlayer = getDrawingUserInRoom(room)
-            const guessingPlayer = getGuessingUserInRoom(room)
-            drawingPlayer.role = 'Guessing-Player'
-            guessingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
-            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') //let ONLY the Drawing-Player in the room know that they are now a "Guessing-Player"
-            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player') //let ONLY the next Drawing-Player in the room know that they are now the "Drawing-Player"
-        }
     })
 
     //When a user disconnects

@@ -83,6 +83,7 @@
 
 .main-wrapper{
     background-color: rgba(255, 255, 255, 0.8);
+    /* background-color: #8ad4f6; */
     filter: drop-shadow(1px 1px 1px rgb(101, 99, 99));
     border-radius: 25px;
     padding-bottom: 10px;

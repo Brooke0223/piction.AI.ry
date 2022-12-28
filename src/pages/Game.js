@@ -4,6 +4,7 @@ import io from 'socket.io-client';
 // import { terms } from "../terms"; //THIS IS THE LIST OF WORDS TO GUESS FROM!!!!!
 import './Game.css';
 import placeholderImage from '../assets/placeholder.jpeg';
+import TutorialModal from '../components/TutorialModal';
 import TimerModal from '../components/TimerModal';
 import ButtonModal from '../components/ButtonModal';
 import Footer from '../components/footer';
@@ -32,7 +33,7 @@ function Game() {
   //Initialize game state
   const room = queryString.parse(window.location.search).room
   const [alertModal, setTimerModal] = useState(false) //having this "true" will let us just see what it looks like (otherwise it's default value would be "false" to have it be closed)
-  const [endModal, setButtonModal] = useState(false) //having this "true" will let us just see what it looks like (otherwise it's default value would be "false" to have it be closed)
+  const [buttonModal, setButtonModal] = useState(false) //having this "true" will let us just see what it looks like (otherwise it's default value would be "false" to have it be closed)
   const [modalMessage, setModalMessage] = useState('')
   const [tutorialModal, setTutorialModal] = useState(false)
   const [roomFull, setRoomFull] = useState(false)
@@ -70,8 +71,9 @@ function Game() {
     setImage(image)
   })
 
-  //When a drawing-user passes their turn or a guessing-user guesses the word correctly, the server informs all sockets to update their round #, their word, and reset any new round variables (like "image", "imageOptions", "searTerms", and "selectedImages")
-  socket.on('nextRoundResponse', (round, word, roundExpTime, modalExpTime) => {
+  //When a game starts, a drawing-user passes their turn, a guessing-user guesses the word correctly, or the timer runs out...
+  //... the server informs all sockets to update their round #, their word, and reset any new round variables (like "image", "imageOptions", "searTerms", and "selectedImages")
+  socket.on('nextRoundResponse', (round, word, roundExpTime, modalExpTime, modalMessage) => {
     setRound(round)
     setWord(word)
     setImage(placeholderImage)
@@ -84,28 +86,26 @@ function Game() {
     setRoundTimeLeft({})
 
     setTimerModal(true)
-    setModalMessage('Time ran out! Your partner draws next.')
+    setModalMessage(modalMessage)
   })
   
 
   // When the end of the game has been reached, let the players know the final percentage, and refresh the page so they can either start again or not
-  socket.on('endGameRequest', (percentage) => {
+  socket.on('endGameRequest', (percentage, modalMessage) => {
     
-    //I'm only implementing it like this (with the "round !===" thing) because otherwise it was rendering like 7-8 times with a million alerts?????
-    if(round !== -1){
-      alert(`That concludes the game! Together you guessed ${percentage}% of the words!`)
-      window.location.reload()
-      round = -1
-    }  
+  
+    setModalMessage(modalMessage + ` That concludes the game! Together you guessed ${percentage}% of the words!`)
+    setButtonModal(true)
 
+    // window.location.reload()
   })
+
 
   const readyHandler = () => {
     setReady(true)
-    socket.emit('readyRequest')
+    socket.emit('nextRoundRequestReady')
   }
   
-
   //When the drawing-user clicks to "submit" their search terms, check to make sure they've actually entered something, and what they've entered doesn't contain the word itself!
   const checkSearchTerms = (e) => {
     e.preventDefault();
@@ -167,8 +167,6 @@ function Game() {
   }
 
 
-
-
   //When a Drawing-User clicks the "Undo" button (wants to revert to a previously-sent image)
   const onUndoImageHandler = () => {
     //if the Drawing-User is currently reviewing their image options (i.e. "imageOptions" !==0)
@@ -218,11 +216,12 @@ function Game() {
   const onPassHandler = () => {
     if (window.confirm("Are you sure you want to pass your turn?")) {
       //let the server know that we need to update game variables ("roles", the "round" number, the "word" for that round, reset "image"/"imageOptions"/"searchTerms"/"selectedImages")
-      socket.emit('nextRoundRequest', round)
+      socket.emit('nextRoundRequestPass', round)
     }
   }
   
   //Stop the timer when the Guessing-Player correctly guesses the word
+  //I don't think I need this anymore because now a modal will just pop-up, and the time-left isn't displayed when the modal is up?
   const stopTimer = () => {
     setRoundTimeLeft({})
   }
@@ -235,8 +234,8 @@ function Game() {
     if(guess.toLowerCase().includes(word.toLowerCase())){
       stopTimer()
       
-      socket.emit('numCorrectWordsRequest') //if the message matches that round's word, let the server know to update the numCorrectWords
-      socket.emit('nextRoundRequest', round) //if the message matches that round's word, let the server know to update to the next round
+      // socket.emit('numCorrectWordsRequest') //if the message matches that round's word, let the server know to update the numCorrectWords
+      socket.emit('nextRoundRequestCorrectGuess', round) //if the message matches that round's word, let the server know to update to the next round
     }
     setGuess('') // clear the "guess" input every time a user submits a guess
   }
@@ -258,13 +257,13 @@ function Game() {
   };
 
   
-  // //This sets an interval to keep calling the above "calculateTimeLeft" functions until they reach zero
+  // This sets an interval to keep calling the above "calculateTimeLeft" functions until they reach zero
   let roundTimerId = setTimeout(calculateRoundTimeLeft, 1000);
 
   if(roundTimeLeft.minutes === 0 && roundTimeLeft.seconds === 0 && role==='Drawing-Player'){ //I don't want both players to send the next-round request
     stopTimer()
     clearInterval(roundTimerId)
-    socket.emit('nextRoundRequest', round) //this works but I think I should do it as a like 'timeOutRequest' emit thing, that way the server can tell the game to display back "Brooke ran out of time! Shaun will be the next drawing-player"
+    socket.emit('nextRoundRequestTimeExpired', round)
   }
 
   
@@ -279,14 +278,11 @@ function Game() {
           <TimerModal open={alertModal} setOpen={setTimerModal} expTime={modalExpirationTime} modalMessage={modalMessage}/>
         </div>
       
-        <ButtonModal open={endModal} setOpen={setButtonModal} />
+        <ButtonModal open={buttonModal} setOpen={setButtonModal} modalMessage={modalMessage} />
+        <TutorialModal open={tutorialModal} setOpenModal={setTutorialModal}/>
       
 
 
-
-      
-      
-      
       
         {/* NAV BAR */}
         {/* <div className='body'>  */}  {/* NOTE: If I switch between the <div> tag of className container/body, it will take the CSS properties from Game.css(?) and put the pencil background image onto the main Game page */} 
@@ -295,7 +291,7 @@ function Game() {
                 <a href="#" className="logo-wrapper">
                   <img className="game-logo" alt="logo" src={require('../assets/pictionary-logo.png')}></img>
                 </a>
-                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="white" class="bi bi-question-circle" viewBox="0 0 16 16">
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="white" class="bi bi-question-circle" viewBox="0 0 16 16" onClick={() => setTutorialModal(true)}>
                   <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                   <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
                 </svg>
@@ -310,7 +306,7 @@ function Game() {
 
               {/* AWAITING PLAYER START SCREEN */}
               {(roomFull !== true && round === 0) && <h2 class="text-center">Room: {room}</h2>}
-              {(ready === true && round === 0) && <h4>--Waiting for another player to join--</h4>}
+              {(ready === true && round === 0) && <h4>--Waiting for partner to begin--</h4>}
               {(ready === false && roomFull === false) && <button class="btn btn-white btn-animate create-btn" onClick={() => readyHandler()}>Start</button>}
               
               {/* GAME INFO FOR BOTH PLAYERS */}
@@ -322,7 +318,7 @@ function Game() {
                 </>
               }
               {/* TIMER FOR BOTH PlAYERS (ONLY APPEARS AFTER MODAL CLOSES) */}
-              {(round !== 0 && alertModal===false)  && 
+              {(round !== 0 && alertModal===false && roundTimeLeft) && 
                 <h4>           
                 <span>{roundTimeLeft.minutes}</span>
                 <span>:</span>
