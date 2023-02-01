@@ -28,15 +28,6 @@ server.listen(PORT, () => {
 })
 
 
-
-
-
-
-
-
-
-
-// --------------------------------------------------------------------------------------------
 const { addUser, removeUser, getUser, getUsersInRoom, getDrawingUserInRoom, getGuessingUserInRoom, getPartner, getRoom } = require('./users')
 
 
@@ -222,11 +213,6 @@ io.on('connection', socket => {
 
 
 })
-// --------------------------------------------------------------------------------------------
-
-
-
-
 const path = require('path')
 //serve static assets in production
 app.use(express.static(path.resolve(__dirname, '../build')))
