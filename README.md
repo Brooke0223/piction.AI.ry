@@ -25,7 +25,7 @@ The round is over when either the Guessing-Player correctly guesses the word, th
 The game is over when all 10 rounds are completed. At that time, users will be shown the percentage of words successfully guessed during that game–can you manage to get 100%?
 
 # How to write stronger Piction.AI.ry prompts
-(credit: https://github.com/midjourney/docs/blob/main/resource-links/guide-to-prompting.md)
+(credit: https://docs.midjourney.com/docs/explore-prompting)
 
 ### Anything left unsaid may surprise you ###
 
