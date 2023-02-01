@@ -167,6 +167,4 @@ const terms = [
     "cargo"
 ]
 
-// module.exports = terms, mediumTerms, hardTerms;
-// module.exports = { terms, mediumTerms, hardTerms };
 module.exports = terms;

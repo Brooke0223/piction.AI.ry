@@ -1,11 +1,9 @@
-let terms = require('./terms'); //this is importing all the words I will use!
-
 const express = require('express');
 const app = express();
 const http  = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors')
-
+let terms = require('./terms'); //importing all the words to be used
 
 
 app.use(
@@ -64,14 +62,7 @@ io.on('connection', socket => {
         if(error)
             return callback(error)
         
-        socket.join(newUser.room) //This just joins the socket **ON THE SERVER SIDE** (e.g. for sending messages, etc.)
-        
-        // console.log(getUsersInRoom('1234'))
-        // console.log(users)
-        // console.log(newUser)
-        // console.log("The room this user is in is: ", newUser.room)
-        // console.log(getUsersInRoom(newUser.room))
-        
+        socket.join(newUser.room)
         socket.emit('setRole', newUser.role)
     })
 
@@ -93,7 +84,6 @@ io.on('connection', socket => {
             const drawingModalMessage = 'The game is starting soon. You are first to draw!'
             const guessingModalMessage = 'The game is starting soon. Your partner is first to draw!'
 
-            // io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, modalMessage) //let everyone in the room know the new word, and the new round # (for the new round)
             io.to(drawingPlayer.id).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, drawingModalMessage)
             io.to(guessingPlayer.id).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, guessingModalMessage)
         }
@@ -112,12 +102,11 @@ io.on('connection', socket => {
         if(round !== 10){
             // Update socket roles
             drawingPlayer.role = 'Guessing-Player'
-            guessingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
+            guessingPlayer.role = 'Drawing-Player'
 
             //Update drawingPlayer/guessingPlayer variables (as roles have switched)
-            //I SHOULD TRY TO CHANGE THE "setRole" THING SO THAT IT'S JUST ALL DONE WITH THE NEXT ROUND RESPONSE THING?
-            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') //let ONLY the Drawing-Player in the room know that they are now a "Guessing-Player"
-            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player') //let ONLY the next Drawing-Player in the room know that they are now the "Drawing-Player"
+            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') 
+            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player')
             drawingPlayer = getDrawingUserInRoom(user.room)
             guessingPlayer = getGuessingUserInRoom(user.room)
 
@@ -150,12 +139,11 @@ io.on('connection', socket => {
         if(round !== 10){
             // Update socket roles
             drawingPlayer.role = 'Guessing-Player'
-            guessingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
+            guessingPlayer.role = 'Drawing-Player'
 
             //Update drawingPlayer/guessingPlayer variables (as roles have switched)
-            //I SHOULD TRY TO CHANGE THE "setRole" THING SO THAT IT'S JUST ALL DONE WITH THE NEXT ROUND RESPONSE THING?
-            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') //let ONLY the Drawing-Player in the room know that they are now a "Guessing-Player"
-            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player') //let ONLY the next Drawing-Player in the room know that they are now the "Drawing-Player"
+            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player')
+            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player')
             drawingPlayer = getDrawingUserInRoom(user.room)
             guessingPlayer = getGuessingUserInRoom(user.room)
 
@@ -166,7 +154,6 @@ io.on('connection', socket => {
             const drawingModalMessage = 'Time ran out! You are next to draw!'
             const guessingModalMessage = 'Time ran out! Your partner is next to draw!'
 
-            // io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, modalMessage) //let everyone in the room know the new word, and the new round # (for the new round)
             io.to(drawingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, drawingModalMessage)
             io.to(guessingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, guessingModalMessage)
         } else{
@@ -189,9 +176,8 @@ io.on('connection', socket => {
             guessingPlayer.role = 'Drawing-Player' //change the "role" of the socket in that socket's profile
 
             //Update drawingPlayer/guessingPlayer variables (as roles have switched)
-            //I SHOULD TRY TO CHANGE THE "setRole" THING SO THAT IT'S JUST ALL DONE WITH THE NEXT ROUND RESPONSE THING?
-            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player') //let ONLY the Drawing-Player in the room know that they are now a "Guessing-Player"
-            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player') //let ONLY the next Drawing-Player in the room know that they are now the "Drawing-Player"
+            io.to(drawingPlayer.id).emit('setRole', 'Guessing-Player')
+            io.to(guessingPlayer.id).emit('setRole', 'Drawing-Player')
             drawingPlayer = getDrawingUserInRoom(user.room)
             guessingPlayer = getGuessingUserInRoom(user.room)
 
@@ -202,7 +188,6 @@ io.on('connection', socket => {
             const drawingModalMessage = 'Your partner passed their turn. You are next to draw!'
             const guessingModalMessage = 'You passed your turn. Your partner is next to draw!'
             
-            // io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, modalMessage) //let everyone in the room know the new word, and the new round # (for the new round)
             io.to(drawingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, drawingModalMessage)
             io.to(guessingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, guessingModalMessage)
         } else{
@@ -245,7 +230,6 @@ io.on('connection', socket => {
 const path = require('path')
 //serve static assets in production
 app.use(express.static(path.resolve(__dirname, '../build')))
-// app.get('*', (req, res) => {res.sendFile(path.resolve(__dirname, '../build', 'index.html'))})
 app.get('/game', (req, res) => {res.sendFile(path.resolve(__dirname, '../build', 'index.html'))})
 
 
