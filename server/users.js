@@ -11,7 +11,7 @@ const addUser = ({id, room}) => {
 
     //I think I can do away with most of this though and simplify it, because I'm making it where if a player leaves, the game will reset--THUS if you're the first player in a room you are the 'Drawing-Player', and if you're the second player, you are the 'Guessing-Player', PERIOD.
     else if(numberOfUsersInRoom === 1){
-        const { role: roleOfPartner } = getPartner()
+        const { role: roleOfPartner } = getPartner(id, room)
         role = (roleOfPartner === 'Drawing-Player') ? 'Guessing-Player' : 'Drawing-Player'
     }else{
         role = 'Drawing-Player'
@@ -40,8 +40,13 @@ const getRoom = id => {
 
 //This returns the *OTHER* user in the room (i.e. if there's one who *doesn't* match the user.id we plugged in)
 //MAYBE I COULD RENAME THIS--"getPartner"?
-const getPartner = id => {
-    return users.find(user => user.id !== id)
+// const getPartner = id => {
+//     return users.find(user => user.id !== id)
+// }
+
+const getPartner = (id, room) => {
+    const playersInRoom = users.filter(user => user.room === room)
+    return playersInRoom.find(user => user.id !== id)
 }
 
 const getUsersInRoom = room => {

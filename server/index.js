@@ -47,18 +47,6 @@ const getCurrentTime = () => {
     return secondsSinceEpoch
 }
 
-
-// const getRoundExpirationTime = () => {
-//     let currentTime = new Date();
-//     currentTime.toUTCString()
-//     return currentTime.setSeconds(currentTime.getSeconds() + 65);
-// }
-
-// const getRoundExpirationTime = () => {
-//     const modalExpirationTime = getModalExpirationTime()
-//     return modalExpirationTime + 60
-// }
-
 const generateWord = () => {
     return terms[Math.floor(Math.random()*terms.length)]
 }
@@ -91,7 +79,7 @@ io.on('connection', socket => {
     socket.on('nextRoundRequestReady', () => {
         const user = getUser(socket.id)
         user.ready = true
-        const partner = getPartner(socket.id)
+        const partner = getPartner(user.id, user.room)
         
         //Only start the game if there is a second player already in the game and they are also set to "ready"
         if(partner && partner.ready === true){
@@ -211,8 +199,8 @@ io.on('connection', socket => {
             const currentTime = getCurrentTime()
             const modalExpirationTime = currentTime + 6
             const roundExpirationTime = modalExpirationTime + 61
-            const drawingModalMessage = 'Your partner passed their turn! You are next to draw!'
-            const guessingModalMessage = 'You passed your turn! Your partner is next to draw!'
+            const drawingModalMessage = 'Your partner passed their turn. You are next to draw!'
+            const guessingModalMessage = 'You passed your turn. Your partner is next to draw!'
             
             // io.to(user.room).emit('nextRoundResponse', 1, word, roundExpirationTime, modalExpirationTime, modalMessage) //let everyone in the room know the new word, and the new round # (for the new round)
             io.to(drawingPlayer.id).emit('nextRoundResponse', round+1, word, roundExpirationTime, modalExpirationTime, drawingModalMessage)
@@ -238,9 +226,13 @@ io.on('connection', socket => {
     //When a user disconnects
     socket.on('disconnect', message => {
         console.log("A USER HAS LEFT")
-        const user = removeUser(socket.id)
-        if(user)
-            io.to(user.room).emit('roomData', {room: user.room, users: getUsersInRoom(user.room)})
+        const user = getUser(socket.id)
+        const partner = getPartner(user.id, user.room)
+        const modalMessage = 'Your partner has left the game.'
+
+        if(partner)
+            io.to(partner.id).emit('partnerLeft', modalMessage)
+        removeUser(socket.id)
     })
 
 

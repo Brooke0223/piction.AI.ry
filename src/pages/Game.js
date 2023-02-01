@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react'; //lets us have state variable
-import queryString from 'query-string'; // lets us retrieve data that is present as a query in the URL
+import React, { useState, useEffect } from 'react';
+import queryString from 'query-string';
 import io from 'socket.io-client';
-// import { terms } from "../terms"; //THIS IS THE LIST OF WORDS TO GUESS FROM!!!!!
-import './Game.css';
 import placeholderImage from '../assets/placeholder.jpeg';
 import TutorialModal from '../components/TutorialModal';
 import TimerModal from '../components/TimerModal';
 import ButtonModal from '../components/ButtonModal';
 import Footer from '../components/footer';
+import './Game.css';
 
 
 const ENDPOINT = window.location.origin
@@ -32,8 +31,8 @@ function Game() {
 
   //Initialize game state
   const room = queryString.parse(window.location.search).room
-  const [alertModal, setTimerModal] = useState(false) //having this "true" will let us just see what it looks like (otherwise it's default value would be "false" to have it be closed)
-  const [buttonModal, setButtonModal] = useState(false) //having this "true" will let us just see what it looks like (otherwise it's default value would be "false" to have it be closed)
+  const [alertModal, setTimerModal] = useState(false) 
+  const [buttonModal, setButtonModal] = useState(false)
   const [modalMessage, setModalMessage] = useState('')
   const [tutorialModal, setTutorialModal] = useState(false)
   const [roomFull, setRoomFull] = useState(false)
@@ -44,13 +43,12 @@ function Game() {
   const [image, setImage] = useState(placeholderImage)
   const [selectedImages, setSelectedImages] = useState([placeholderImage])
   const [guess, setGuess] = useState('')
-  
   const [roundExpirationTime, setRoundExpirationTime] = useState(0)
   const [modalExpirationTime, setModalExpirationTime] = useState(0)
   const [roundTimeLeft, setRoundTimeLeft] = useState({});
   
   
-  // When a new socket joins, let the server know the socket's name and room number so the server can add that socket to that socket-room
+  // Join socket to room
   if(joined === false){
     setJoined(true)
     
@@ -60,7 +58,7 @@ function Game() {
     })
   }  
 
-  //Upon joining, the socket returns back what that user's initial role will be
+  //Upon joining, the socket returns back the user's initial role
   socket.on('setRole', role => {
     setRole(role)
     console.log(role)
@@ -72,7 +70,7 @@ function Game() {
   })
 
   //When a game starts, a drawing-user passes their turn, a guessing-user guesses the word correctly, or the timer runs out...
-  //... the server informs all sockets to update their round #, their word, and reset any new round variables (like "image", "imageOptions", "searTerms", and "selectedImages")
+  //... the server informs all sockets to update their round #, and reset any round variables
   socket.on('nextRoundResponse', (round, word, roundExpTime, modalExpTime, modalMessage) => {
     setRound(round)
     setWord(word)
@@ -92,12 +90,15 @@ function Game() {
 
   // When the end of the game has been reached, let the players know the final percentage, and refresh the page so they can either start again or not
   socket.on('endGameRequest', (percentage, modalMessage) => {
-    
-  
     setModalMessage(modalMessage + ` That concludes the game! Together you guessed ${percentage}% of the words!`)
     setButtonModal(true)
 
     // window.location.reload()
+  })
+
+  socket.on('partnerLeft', modalMessage => {
+    setModalMessage(modalMessage)
+    setButtonModal(true)
   })
 
 
@@ -106,23 +107,22 @@ function Game() {
     socket.emit('nextRoundRequestReady')
   }
   
-  //When the drawing-user clicks to "submit" their search terms, check to make sure they've actually entered something, and what they've entered doesn't contain the word itself!
+  //When the drawing-user clicks to "submit" their search terms, validate their search terms
   const checkSearchTerms = (e) => {
     e.preventDefault();
 
-    //if they haven't actually entered anything into the input box (i.e. "searchTerms" === '')
-    //...just don't do anything (this is an invalid request that would bug-out our API request)
+    //search terms must not be empty
     if(searchTerms === ''){
       return
     }
 
-    //check if the message and that round's word match (everything lowercase)
+    //search terms must not contain that round's word
     if(searchTerms.toLowerCase().includes(word.toLowerCase())){
       alert("Your search terms may not include the round's key word!")
       return
     }
 
-    //If it passes both of those tests, we can now submit those search terms
+    //Otherwise if it passes both tests, submit search terms
     submitSearchTerms()
   }
 
@@ -131,11 +131,7 @@ function Game() {
   const submitSearchTerms = () => {
 
     const formattedSearchTerms = searchTerms.split(' ').join('+');
-    setSearchTerms('') //I should clear out the search terms so the input goes back to the placeholder?
-
-    // send request to the API
-    // const proxy_url = 'https://cors-anywhere.herokuapp.com/';
-    // fetch(proxy_url+ 'https://lexica.art/api/v1/search?q=' + formattedSearchTerms)
+    setSearchTerms('') //clear search terms so the input goes back to the placeholder
     fetch('https://lexica.art/api/v1/search?q=' + formattedSearchTerms)
       .then(response => response.json())
       .then(data => {
@@ -193,21 +189,18 @@ function Game() {
   //When a Drawing-User clicks the "Redo" button (wants to revert to a subsequently-sent image)
   const onRedoImageHandler = () => {
     //if the Drawing-User is currently reviewing their image options (i.e. "imageOptions" !==0)
-    //...I don't feel like "redo" should be a valid option in that case
     if(imageOptions.length !== 0){
       alert('Invalid Redo Request')
-      return //this makes it so the rest of the block of code will not be executed if this part was true (so the rest of the block of code is basically just our "else" statement)
+      return
     }
 
     //otherwise is the Drawing-User is NOT currently reviewing their image options (i.e. "imageOptions" === 0)
-    //...check what index the current "image" is set to in the "selectedImages" array
     const index = selectedImages.indexOf(image)
 
-    //if they're currently at the final index (i.e. "index" === selectedImages.length), just return and don't do anything (since it is an invalid "redo" request)
-    //otherwise, set the "image" to be whatever image is at the *next* index in the "selectedImages" array
+    //set the "image" to the *next* index in the "selectedImages" array (as long as the user is not at the final index)
     if(index !== selectedImages.length-1){
       const subsequentImage = selectedImages[index+1]
-      socket.emit('updateImageRequest', subsequentImage) //let the server know that we need to update the image
+      socket.emit('updateImageRequest', subsequentImage)
     }
   }
   
@@ -215,7 +208,6 @@ function Game() {
   //When a Drawing-User clicks "Pass" button (to pass their turn)
   const onPassHandler = () => {
     if (window.confirm("Are you sure you want to pass your turn?")) {
-      //let the server know that we need to update game variables ("roles", the "round" number, the "word" for that round, reset "image"/"imageOptions"/"searchTerms"/"selectedImages")
       socket.emit('nextRoundRequestPass', round)
     }
   }
@@ -226,18 +218,18 @@ function Game() {
     setRoundTimeLeft({})
   }
   
-  //When the Guessing-User submits a guess (i.e. a message)
+  //When the Guessing-Player submits a guess
   const submitGuess = (e) => {
     e.preventDefault();
     
-    //check if the message and that round's word match (everything lowercase)
+    //Verify the guess does not contain that round's word
     if(guess.toLowerCase().includes(word.toLowerCase())){
       stopTimer()
       
-      // socket.emit('numCorrectWordsRequest') //if the message matches that round's word, let the server know to update the numCorrectWords
-      socket.emit('nextRoundRequestCorrectGuess', round) //if the message matches that round's word, let the server know to update to the next round
+      //if the message matches that round's word, let the server know to update to the next round
+      socket.emit('nextRoundRequestCorrectGuess', round) 
     }
-    setGuess('') // clear the "guess" input every time a user submits a guess
+    setGuess('') //clear the "guess" input so it reverts back to the placeholder
   }
 
 
@@ -248,7 +240,6 @@ function Game() {
     let currentTime = Math.floor(Date.now()/1000);
     const difference =  roundExpirationTime - currentTime;
     if(difference >= 0){
-      // console.log(`The difference is ${difference}`)
       setRoundTimeLeft({
         minutes: Math.floor(difference / 60),
         seconds: Math.floor((difference / 60 - Math.floor(difference / 60)) * 60),
@@ -282,10 +273,6 @@ function Game() {
         <TutorialModal open={tutorialModal} setOpenModal={setTutorialModal}/>
       
 
-
-      
-        {/* NAV BAR */}
-        {/* <div className='body'>  */}  {/* NOTE: If I switch between the <div> tag of className container/body, it will take the CSS properties from Game.css(?) and put the pencil background image onto the main Game page */} 
         <div className="nav-wrapper">
             <div className="container nav">
                 <a href="#" className="logo-wrapper">
@@ -318,7 +305,7 @@ function Game() {
                 </>
               }
               {/* TIMER FOR BOTH PlAYERS (ONLY APPEARS AFTER MODAL CLOSES) */}
-              {(round !== 0 && alertModal===false && roundTimeLeft) && 
+              {(round !== 0 && alertModal===false && buttonModal===false && roundTimeLeft) && 
                 <h4>           
                 <span>{roundTimeLeft.minutes}</span>
                 <span>:</span>
