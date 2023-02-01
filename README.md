@@ -27,7 +27,6 @@ The game is over when all 10 rounds are completed. At that time, users will be s
 # How to write stronger Piction.AI.ry prompts
 (credit: https://github.com/midjourney/docs/blob/main/resource-links/guide-to-prompting.md)
 
----
 ### Anything left unsaid may surprise you ###
 
 You can be as specific or as vague as you want, but anything you leave out will be randomized. Being vague is a great way to get variety, but you may not get what you’re looking for. 
@@ -86,5 +85,3 @@ Vague plural words leave a lot to chance (did you mean 3 wizards or 12 wizards?)
 
 **Avoid:** “Clothes humans will wear 12,000 years into the future”
 **Try:** “wildly futuristic clothing with glowing and colorful decoration”
-
----
