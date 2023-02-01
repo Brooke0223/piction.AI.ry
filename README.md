@@ -34,7 +34,7 @@ You can be as specific or as vague as you want, but anything you leave out will 
 Try to be clear about any context or details that are important to you.
 
 ---
-### Try visually well-defined objects ### *(something with a lot of photos on the internet)*
+### Try visually well-defined objects *(something with a lot of photos on the internet)* ###
 
 **Try:** Wizard, priest, angel, emperor, rockstar, city, queen, Zeus, house, temple, farm, car, landscape, mountain, river
 
@@ -53,24 +53,28 @@ If the style is unspecified, it will lean towards photorealism
 Language models often ignore negative words (“not” “but” “except” “without”).
 
 **Avoid:** “a hat that's not blue”
+
 **Try:** “a blue hat”
 
 ---
 ### Specify what you want clearly ###
 
 **Avoid:** “monkeys doing business”
+
 **Try:** “three monkeys in business suits”
 
 ---
 ### If you want a specific composition, say so! ###
 
 **Examples:** “a portrait of a queen” “an ultrawide shot of a queen”
+
 **Try:** “portrait, headshot, ultrawide shot, extreme closeup, macro shot, an expansive view of”
 
 ---
 ### Too many small details may overwhelm the system ###
 
 **Avoid:** “a monkey on roller skates juggling razor blades in a hurricane”
+
 **Try:** “a monkey that’s a hurricane of chaos”
 
 ---
@@ -78,10 +82,12 @@ Language models often ignore negative words (“not” “but” “except” �
 Vague plural words leave a lot to chance (did you mean 3 wizards or 12 wizards?)
 
 **Avoid:** “cyberpunk wizards”
+
 **Try:** “three cyberpunk wizards”
 
 ---
 ### Avoid concepts which involve significant extrapolation ###
 
 **Avoid:** “Clothes humans will wear 12,000 years into the future”
+
 **Try:** “wildly futuristic clothing with glowing and colorful decoration”
